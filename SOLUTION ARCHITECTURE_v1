@@ -1,0 +1,67 @@
+CRIT Enterprise GL Model – Solution Architecture (Prototype / Target State)
+This document summarizes the problem statement, target solution, and an end-to-end solution architecture/data-flow. It is designed to accompany the leadership presentation deck.
+
+1. Problem Statement (Current State)
+• Numerous GL reconciliations are performed across CRIT systems/teams without a standardized, centralized model.
+• Reconciliations vary by scope, process, tools, cleansing approach, hierarchies used, and level of granularity.
+• Duplicated work occurs downstream; audit evidence is inconsistent and costly to assemble.
+
+2. What We Are Doing (Objectives)
+Discovery & Design (2025 P3–P4): survey existing reconciliations/reporting, collect use cases, review workflows/tools/controls, define best practices, design a consolidated GL model (cleansing + reconciliation methodology), and integrate into CR360 enterprise/product models.
+
+Implementation (2026+): implement the CRIT Enterprise GL Model in CR360 (dependent on funding).
+
+3. What the Solution Will Include (Capabilities)
+• Consolidated repositories:
+ – GL sourcing data (cleansed/transformed) joined to lowest-level balances
+ – CRRT balances at all available levels joined to hierarchies (LOB, Legal Entity, Y-9C, Call Report, SEC, etc.)
+ – Reconciliation variances capturing known variances and commentary
+• Portal & controls:
+ – Web UI for report vs GL comparison, drill-down, and variance explanations
+ – Workflow (maker/checker), entitlements, audit log, and period locking
+ – Evidence outputs for SOX/RCSA and downstream consumers
+
+4. End-to-End Solution Architecture (Target State)
+High-level flow:
+
+GL & CRRT/Report Sources
+ → Ingest + Standardize (DQ gates, cleansing, conformed keys)
+ → CR360 Enterprise GL Model (balances + reconciliation engine + variance store)
+ → Portal (drill-down + explanations) + Workflow (maker/checker)
+ → Audit log + Evidence pack exports
+ → Downstream enterprise/product models and reporting
+
+ASCII data-flow diagram:
+
+[SORs: FYD/IRIS | GLODS | DRM | Axiom | Essbase | CAR/WMCRD | ERA | Y-9C | Y-14 | STARE]
+         |
+         v
+[Landing/Raw Zone] -> [DQ Checks] -> [Standardize/Cleanse] -> [Hierarchy/Mapping]
+         |
+         v
+[CR360 Enterprise GL Model: Attributes + Balances]
+         |
+         v
+[Reconciliation Engine] -> [Variance Store]
+         |
+         +-> [Portal UI] <-> [Workflow]
+         |
+         +-> [Audit Log] -> [Evidence Pack]
+         |
+         v
+[Downstream: Commercial | Consumer | Securities | Wholesale Basel | Allowance | Enterprise (GL Reconciled)]
+
+5. Operating Model (People, Process, Controls)
+Roles:
+• Viewer (read-only)
+• Maker (creates/updates variance explanations and evidence)
+• Checker/Approver (reviews and certifies)
+• Admin (entitlements/config)
+
+Close cadence:
+T-0 ingest & DQ gates → T-1 reconciliation run → T-2 maker analysis → T-3 checker approval/certification → T-4 period lock + evidence pack.
+
+6. Verticals / Workstreams
+Vertical rollout (from Target State slide): Commercial, Consumer, Securities, Wholesale Basel, Allowance, Enterprise.
+Note: The PDF containing the full vertical list is not accessible in this chat environment. Upload the PDF here (or paste the vertical table) and this section will be updated with the exact mapping of SORs → reports → verticals.
+
