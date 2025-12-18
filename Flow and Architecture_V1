@@ -1,0 +1,159 @@
+
+
+Flow diagram for the POC
+
+
+
+[GL Sources] + [CRRT / Report Sources]
+        |
+        v
+(1) Ingest (Python)  -->  (2) Standardize + Cleanse  -->  (3) Map to Enterprise GL Model
+        |                      |                              |
+        |                      v                              v
+        |                DQ Checks & Flags              Conformed Dimensions
+        |                      |                              |
+        +----------------------+------------------------------+
+                               |
+                               v
+                    (4) Reconciliation Engine (Python)
+                 Compare Report vs GL at CAASI/Hierarchy levels
+                               |
+                               v
+                  (5) Variance Output + Classification
+            Threshold rules + anomaly scoring (optional in POC)
+                               |
+                               v
+           (6) Web UI (Prototype) for Drill-down + Explanations
+               Maker updates explanation  ->  Checker approves
+                               |
+                               v
+            (7) Audit Log + Evidence Pack + Summary Dashboards
+                     Period Lock (read-only after final)
+
+POC “swimlane” view (who does what)
+
+DATA PLATFORM (Python)         PORTAL (UI)                 CONTROLS / AUDIT
+--------------------           ---------------------       -----------------------
+Ingest + cleanse               View dashboard              View audit trail
+Map to Enterprise GL model     Drill-down variances        Evidence pack export
+Run reconciliation             Maker adds explanation      Period lock enforced
+Write variance table           Checker approve/reject      SOX/RCSA outputs
+
+
+⸻
+
+Plan of approach for the prototype (Python-based)
+
+1) What leaders will see (demo storyline)
+	1.	Pick a period + report (Monthly / Quarterly)
+	2.	System shows Reconciliation Dashboard (status, total variances, above threshold)
+	3.	Click into one reconciliation → Report vs GL comparison
+	4.	Drill down from high level → CAASI-level detail
+	5.	Open a variance → classification + explanation (Maker)
+	6.	Submit → Checker approval
+	7.	Show audit log + evidence pack output
+	8.	Finalize → period locks (no edits)
+
+This mirrors the future-state slides: central model + standardized reconciliation + workflow + audit + downstream reporting.
+
+⸻
+
+POC scope (tight, credible, fast)
+
+Data scope (recommended)
+	•	Use 2 GL sources (or 1 GL source + 1 report extract) to start
+	•	Use one CRRT/report domain (e.g., CAR Consumer or CAR Commercial)
+	•	1–2 legal entities + a subset of accounts (enough to demonstrate drill-down)
+
+Functional scope (must-have in POC)
+	•	Ingest → cleanse → map → reconcile
+	•	Multi-level reconciliation (at least Entity + Account, ideally include Sub-account/AU)
+	•	Variance table with threshold flag
+	•	UI screens:
+	•	Dashboard
+	•	Variance list with filters
+	•	Variance detail (explanation + attachments link placeholder)
+	•	Maker/Checker approval
+	•	Audit log view/export
+
+Nice-to-have (if time)
+	•	Anomaly scoring (simple: z-score on historical periods)
+	•	Roll-forward comments
+	•	Trending chart (variance count/amount over periods)
+
+⸻
+
+Technical approach (Python-first, leader-safe)
+
+Proposed stack (simple + demo-friendly)
+	•	Python ETL/Engine: pandas + SQLAlchemy
+	•	Database: Postgres (local or container) or SQLite for ultra-light POC
+	•	UI: Streamlit (fast) or FastAPI + simple React (more “enterprise”)
+	•	Workflow: basic state machine in DB (Maker/Checker statuses)
+	•	Audit log: append-only table capturing who/what/when
+	•	Exports: generate PDF/CSV evidence packs
+
+Core data tables (POC schema)
+	•	gl_balances(period, entity, account, au, sub_account, instrument, amount, source)
+	•	report_balances(period, report, entity, account, ... , amount, source)
+	•	mapping_dim(account -> report_line, entity -> hierarchy, etc.)
+	•	recon_results(period, report, keys..., gl_amt, rpt_amt, variance_amt, variance_pct, threshold_flag, status)
+	•	variance_comments(variance_id, comment, classification, created_by, created_ts)
+	•	workflow_tasks(variance_id, assigned_to, role, status)
+	•	audit_log(event_ts, user, action, object_type, object_id, before_json, after_json)
+
+⸻
+
+Phased delivery plan (what you’ll present to leadership)
+
+Phase 0 — Align & lock POC success criteria
+	•	Confirm 1–2 reconciliations to prototype
+	•	Confirm thresholds and hierarchy levels
+	•	Confirm Maker/Checker roles for demo
+
+Deliverable: POC scope doc + demo script
+
+Phase 1 — Data model + ingestion
+	•	Load sample GL + report extracts
+	•	Standardize keys (entity/account/hierarchy)
+	•	Produce “cleansed attribute data” output
+
+Deliverable: Conformed tables + DQ checks
+
+Phase 2 — Reconciliation engine + variance outputs
+	•	Join report vs GL at defined levels
+	•	Compute variance amounts and flags
+	•	Store recon results (repeatable runs)
+
+Deliverable: reconciliation tables + rerunnable pipeline
+
+Phase 3 — Web UI + workflow + audit
+	•	Dashboard + drill-down
+	•	Maker explanation + Checker approval
+	•	Audit log and evidence pack exports
+	•	Period lock (read-only post-final)
+
+Deliverable: demoable portal + exported evidence pack
+
+Phase 4 — Executive readout + next-step roadmap
+	•	What worked, what needs scaling
+	•	Gaps to productionize (security, data volumes, integration)
+	•	2026+ implementation roadmap aligned to CR360
+
+Deliverable: leader deck + recommended funding path
+
+⸻
+
+What leaders care about (include these on slides)
+
+POC outcomes / metrics
+	•	Reduction in manual effort (time-to-explain a variance)
+	•	% of variances explained and approved before close
+	•	Consistency of mappings and hierarchies
+	•	Audit readiness (evidence pack completeness, lock controls)
+	•	Reusability for downstream teams (single source of truth)
+
+Risk controls (say this explicitly)
+	•	“AI/automation is advisory only in POC” (no auto-commit)
+	•	Maker/Checker segregation of duties
+	•	Immutable audit trail + lock after finalization
