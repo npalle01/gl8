@@ -1,0 +1,49 @@
+Solution Architecture – Data Flow
+SOR → CR360 → Portal → Audit
+
+1) Sources (SORs)
+GL: FYD/IRIS, GLODS, DRM, Axiom, Essbase
+CRRT/Reports: CAR GL, Consumer/WMCRD, Commercial, ERA, Y-9C, Y-14A/M/Q, STARE
+Legacy: Teradata (as needed)
+
+2) Ingest + Standardize
+Landing zone (raw extracts)
+DQ checks (completeness, duplicates, sign/currency)
+Standardize keys + apply hierarchy mappings
+Produce final cleansed attribute data
+
+3) CR360 Enterprise GL Model
+Balances at multiple levels (CAASI + hierarchies)
+Reconciliation engine (Report vs GL)
+Variance store (amount/%, threshold, classification, status)
+
+4) Portal + Workflow + Controls
+Dashboard + filters + drill-down
+Maker explanation → Checker approval → Certification
+Audit log + period lock; evidence pack outputs
+
+5) Downstream Consum
+
+
+
+Operating Model (People • Process • Controls)
+How it runs monthly/quarterly
+
+Roles
+•Viewer: read-only
+•Maker: explain variances
+•Checker: approve/reject
+•Admin: entitlements/config
+
+Cadence & gates
+•T-0: Data ingest & DQ gates complete
+•T-1: Reconciliation run published
+•T-2: Maker explanations + evidence
+•T-3: Checker approval + certification
+•T-4: Period lock; evidence pack generated
+
+Controls that matter to Audit
+•Segregation of duties (maker/checker)
+•Immutable audit log (who/what/when + before/after)
+•Period lock after finalization; read-only prior months
+•SOX/RCSA artifact outputs (variance list + approvals + evidence links)
